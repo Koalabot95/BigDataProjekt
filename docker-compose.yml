@@ -1,0 +1,16 @@
+volumes:
+  mongodb_data:
+    driver: local
+services:
+  mongodb:
+    image: mongo:4.4
+    container_name: wohnung_mongodb
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

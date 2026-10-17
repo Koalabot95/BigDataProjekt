@@ -1,0 +1,16 @@
+# Virtuelle Umgebung
+.venv/
+env/
+venv/
+
+# Python Cache & Jupyter Checkpoints
+__pycache__/
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# Betriebssystem-Dateien
+.DS_Store
+Thumbs.db

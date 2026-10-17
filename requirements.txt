@@ -1,0 +1,13 @@
+jupyter
+ipykernel
+pandas
+numpy
+pymongo
+shapely
+geopandas
+pyproj
+pyspark
+scikit-learn
+plotly
+folium
+matplotlib
