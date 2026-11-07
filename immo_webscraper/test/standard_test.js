@@ -25,6 +25,38 @@ function toNumber(str) {
     return parseFloat(str.replace(/\./g, '').replace(',', '.'));
 }
 
+
+// Next.js bettet die Inserate zusätzlich als JSON in die Seite ein (u.a. Straße, PLZ, Objektart).
+// Liefert eine Map: Inserat-ID -> Eintrag. Schlägt das Auslesen fehl, bleibt die Map leer.
+function extractEntries(html) {
+    try {
+        const text = html.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+        const marker = '"entries":[{"__typename":"PropertyEntryResponse"';
+        const at = text.indexOf(marker);
+        if (at === -1) return new Map();
+
+        const start = at + '"entries":'.length;
+        let depth = 0, inString = false, escaped = false, end = -1;
+        for (let i = start; i < text.length; i++) {
+            const ch = text[i];
+            if (inString) {
+                if (escaped) escaped = false;
+                else if (ch === '\\') escaped = true;
+                else if (ch === '"') inString = false;
+                continue;
+            }
+            if (ch === '"') inString = true;
+            else if (ch === '[') depth++;
+            else if (ch === ']' && --depth === 0) { end = i + 1; break; }
+        }
+        if (end === -1) return new Map();
+
+        return new Map(JSON.parse(text.substring(start, end)).map(e => [String(e.id), e]));
+    } catch (err) {
+        return new Map();
+    }
+}
+
 // Extrahiert die Inserate aus dem HTML einer Suchergebnisseite.
 // Jede Inserat-Karte verlinkt auf /detail/<id>; der Text zwischen zwei Karten wird ausgewertet.
 function parseListings(html) {
@@ -41,12 +73,13 @@ function parseListings(html) {
         starts.push({ type: m[1], id: m[2], index: m.index });
     }
 
+    const entries = extractEntries(html);
     const listings = [];
     for (let i = 0; i < starts.length; i++) {
         const { type, id, index } = starts[i];
         if (type !== 'detail') continue; // Neubauprojekt-Gruppen überspringen
 
-        // Karten sind lang (Bildergalerie, SVGs), daher großzügiges Limit 
+        // Karten sind lang (Bildergalerie, SVGs), daher großzügiges Limit statt fixer 6000 Zeichen
         const end = i + 1 < starts.length ? starts[i + 1].index : index + 40000;
         let chunk = html.substring(index, Math.min(end, index + 40000));
 
@@ -62,12 +95,18 @@ function parseListings(html) {
         const area = text.match(/([\d.]+(?:,\d+)?)\s*m²/);
         const rooms = text.match(/(\d+)\s*Zimmer/);
 
+        const prop = (entries.get(id) || {}).property || {};
+        const loc = prop.location || {};
+
         listings.push({
             id: +id,
             url: `${ORIGIN}/detail/${id}`,
             title,
             location: location ? location[1].replace(/\s+,/g, ',').replace(/,(?=\S)/g, ', ').trim() : null,
-            plz: location ? +location[1].match(/\d{4}/)[0] : null,
+            plz: loc.zipCode ? +loc.zipCode : (location ? +location[1].match(/\d{4}/)[0] : null),
+            street: loc.street || null,
+            property_type: (prop.basics || {}).propertyType || null,
+            amenities: prop.amenities || [],
             price: price ? toNumber(price[1]) : null,
             area_m2: area ? toNumber(area[1]) : null,
             rooms: rooms ? +rooms[1] : null,
@@ -89,7 +128,7 @@ async function getListings(url) {
 }
 
 async function scrapeStandard() {
-    const outputPath = path.join(__dirname, '../../data/raw/standard_listings.jsonl');
+    const outputPath = path.join(__dirname, '../data/raw/standard_listings.jsonl');
 
     const dataDir = path.dirname(outputPath);
     if (!fs.existsSync(dataDir)) {
