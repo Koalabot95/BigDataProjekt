@@ -36,7 +36,7 @@ async function getListings(url) {
 }
 
 async function scrapeWillhaben() {
-    const outputPath = path.join(__dirname, '../../data/willhaben_listings.jsonl');
+    const outputPath = path.join(__dirname, '../../data/raw/willhaben_listings.jsonl');
 
     const dataDir = path.dirname(outputPath);
     if (!fs.existsSync(dataDir)) {

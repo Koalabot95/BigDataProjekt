@@ -3,7 +3,7 @@ const path = require('path');
 
 async function scrapeImmoScout() {
     const url = 'https://www.immobilienscout24.at/portal/graphql';
-    const outputPath = path.join(__dirname, '../../data/immobilienscout_listings.jsonl');
+    const outputPath = path.join(__dirname, '../../data/raw/immobilienscout_listings.jsonl');
     
     const dataDir = path.dirname(outputPath);
     if (!fs.existsSync(dataDir)) {

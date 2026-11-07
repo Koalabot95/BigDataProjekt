@@ -89,7 +89,7 @@ async function getListings(url) {
 }
 
 async function scrapeStandard() {
-    const outputPath = path.join(__dirname, '../../data/standard_listings.jsonl');
+    const outputPath = path.join(__dirname, '../../data/raw/standard_listings.jsonl');
 
     const dataDir = path.dirname(outputPath);
     if (!fs.existsSync(dataDir)) {
