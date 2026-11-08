@@ -9,7 +9,7 @@ python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements-lock.txt (hier sind alle exakten Versionsnummern gespeichert - mit requirements ist die Installation auch möglich)
 
-2. MongoDB starten:
+2. Docker Container starten:
 docker compose up -d
 
 3. Notebook öffnen und loslegen
