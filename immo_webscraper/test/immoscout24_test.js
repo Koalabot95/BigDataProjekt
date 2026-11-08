@@ -14,7 +14,7 @@ async function scrapeImmoScout() {
     let page = 1;
     let hasMorePages = true;
     const pageSize = 20;
-    const maxPages = 2;
+    const maxPages = 5;
     const shaHash = "2f6188db30c658d6d5b86b9a796432039ef174bfebfd28bf7ddb9f9c4f9cc3bd";
 
     fs.writeFileSync(outputPath, '');

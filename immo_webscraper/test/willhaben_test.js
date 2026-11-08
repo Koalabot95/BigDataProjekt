@@ -46,7 +46,7 @@ async function scrapeWillhaben() {
     // Mietwohnungen Wien (areaId=900) – bei Bedarf anpassen
     const baseUrl = 'https://www.willhaben.at/iad/immobilien/mietwohnungen/mietwohnung-angebote?areaId=900';
     const pageSize = 25;
-    const maxPages = 2;
+    const maxPages = 5;
 
     let allListings = [];
     let page = 1;

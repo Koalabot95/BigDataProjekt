@@ -6,6 +6,17 @@ venv/
 # Python Cache & Jupyter Checkpoints
 __pycache__/
 .ipynb_checkpoints/
+*.pyc
+
+# Projektdaten
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+#Node_Modules
+node_modules/
+npm-debug.log
 
 # IDEs
 .vscode/
