@@ -11,8 +11,7 @@ __pycache__/
 # Projektdaten
 data/raw/*
 data/processed/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
+!data/**/.gitkeep
 
 #Node_Modules
 node_modules/
