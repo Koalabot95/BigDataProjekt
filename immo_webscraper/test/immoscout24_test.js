@@ -1,9 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-async function scrapeImmoScout() {
+// Optionen: maxPages (Anzahl Seiten), outputPath (Zieldatei), runType ('full' | 'fast', wird als Metadatum gespeichert)
+async function scrapeImmoScout({
+    maxPages = 2,
+    outputPath = path.join(__dirname, '../../data/raw/immobilienscout_listings.jsonl'),
+    runType = 'full'
+} = {}) {
     const url = 'https://www.immobilienscout24.at/portal/graphql';
-    const outputPath = path.join(__dirname, '../../data/raw/immobilienscout_listings.jsonl');
     
     const dataDir = path.dirname(outputPath);
     if (!fs.existsSync(dataDir)) {
@@ -11,14 +15,15 @@ async function scrapeImmoScout() {
     }
 
     let allListings = [];
+    const seenIds = new Set();
+    const scrapedAt = new Date().toISOString();
     let page = 1;
     let hasMorePages = true;
     const pageSize = 20;
-    const maxPages = 5;
     const shaHash = "2f6188db30c658d6d5b86b9a796432039ef174bfebfd28bf7ddb9f9c4f9cc3bd";
 
     fs.writeFileSync(outputPath, '');
-    console.log("🚀 Starte ImmoScout24 Scraping...");
+    console.log("Starte ImmoScout24 Scraping...");
 
     while (hasMorePages && page <= maxPages) {
         const fromIndex = (page - 1) * pageSize;
@@ -62,29 +67,30 @@ async function scrapeImmoScout() {
                 success = true;
             } catch (error) {
                 retries++;
-                console.log(`⚠️ ImmoScout Fehler auf Seite ${page} (Versuch ${retries}/3): ${error.message}`);
+                console.log(`ImmoScout Fehler auf Seite ${page} (Versuch ${retries}/3): ${error.message}`);
                 await new Promise(resolve => setTimeout(resolve, 10000));
             }
         }
 
-        if (!success || listings.length === 0) {
+        // Duplikate ausfiltern; liefert eine Seite nichts Neues mehr, ist das Ende erreicht
+        const fresh = listings.filter(item => !seenIds.has(item.exposeId));
+        fresh.forEach(item => seenIds.add(item.exposeId));
+
+        if (!success || fresh.length === 0) {
             hasMorePages = false;
             break;
         }
 
-        allListings.push(...listings);
-        const stream = fs.createWriteStream(outputPath, { flags: 'a' });
-        for (const item of listings) {
-            stream.write(JSON.stringify(item) + '\n');
-        }
-        stream.end();
+        allListings.push(...fresh);
+        fs.appendFileSync(outputPath, fresh.map(item =>
+            JSON.stringify({ ...item, _scraped_at: scrapedAt, _run_type: runType })).join('\n') + '\n');
 
-        console.log(`-> ImmoScout Seite ${page}: ${listings.length} Anzeigen (Gesamt: ${allListings.length})`);
+        console.log(`-> ImmoScout Seite ${page}: ${fresh.length} Anzeigen (Gesamt: ${allListings.length})`);
         page++;
         await new Promise(resolve => setTimeout(resolve, 3000));
     }
 
-    console.log(`✅ ImmoScout fertig: ${allListings.length} Wohnungen gespeichert.\n`);
+    console.log(`ImmoScout fertig: ${allListings.length} Wohnungen gespeichert.\n`);
     return allListings.length;
 }
 

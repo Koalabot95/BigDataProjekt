@@ -127,23 +127,27 @@ async function getListings(url) {
     return parseListings(await response.text());
 }
 
-async function scrapeStandard() {
-    const outputPath = path.join(__dirname, '../../data/raw/standard_listings.jsonl');
+// Optionen: maxPages (Anzahl Seiten), outputPath (Zieldatei), runType ('full' | 'fast', wird als Metadatum gespeichert)
+async function scrapeStandard({
+    maxPages = 2,
+    outputPath = path.join(__dirname, '../../data/raw/standard_listings.jsonl'),
+    runType = 'full'
+} = {}) {
 
     const dataDir = path.dirname(outputPath);
     if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    const maxPages = 5;
 
     let allListings = [];
     const seenIds = new Set();
+    const scrapedAt = new Date().toISOString();
     let page = 1;
     let hasMorePages = true;
 
     fs.writeFileSync(outputPath, '');
-    console.log("🚀 Starte DerStandard Scraping...");
+    console.log("Starte DerStandard Scraping...");
 
     while (hasMorePages && page <= maxPages) {
         let success = false;
@@ -156,7 +160,7 @@ async function scrapeStandard() {
                 success = true;
             } catch (error) {
                 retries++;
-                console.log(`⚠️ DerStandard Fehler auf Seite ${page} (Versuch ${retries}/3): ${error.message}`);
+                console.log(`DerStandard Fehler auf Seite ${page} (Versuch ${retries}/3): ${error.message}`);
                 await new Promise(resolve => setTimeout(resolve, 10000));
             }
         }
@@ -171,14 +175,15 @@ async function scrapeStandard() {
         }
 
         allListings.push(...fresh);
-        fs.appendFileSync(outputPath, fresh.map(item => JSON.stringify(item)).join('\n') + '\n');
+        fs.appendFileSync(outputPath, fresh.map(item =>
+            JSON.stringify({ ...item, _scraped_at: scrapedAt, _run_type: runType })).join('\n') + '\n');
 
         console.log(`-> DerStandard Seite ${page}: ${fresh.length} Anzeigen (Gesamt: ${allListings.length})`);
         page++;
         await new Promise(resolve => setTimeout(resolve, 3000));
     }
 
-    console.log(`✅ DerStandard fertig: ${allListings.length} Wohnungen gespeichert.\n`);
+    console.log(`DerStandard fertig: ${allListings.length} Wohnungen gespeichert.\n`);
     return allListings.length;
 }
 
