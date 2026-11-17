@@ -1,27 +1,18 @@
 {
-  "name": "willhaben",
-  "version": "0.2.1",
-  "description": "",
+  "name": "wohnungsmarkt-scraper",
+  "version": "1.0.0",
+  "description": "Scraper (Willhaben, ImmoScout24, DerStandard) mit Zeitsteuerung und Kafka-Producer für den Wohnungsmarkt-Radar Wien",
   "main": "app.js",
   "scripts": {
-    "test": "mocha",
-    "devtest": "jenkins-mocha --cobertura test/*"
+    "start": "node app.js",
+    "scrape:fast": "node app.js fast",
+    "scrape:full": "node app.js full"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/CP02A/willhaben.git"
-  },
-  "author": "Christian Proschek",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/CP02A/willhaben/issues"
+  "engines": {
+    "node": ">=18"
   },
-  "homepage": "https://github.com/CP02A/willhaben#readme",
   "dependencies": {
-    "node-fetch": "^2.6.1"
-  },
-  "devDependencies": {
-    "jenkins-mocha": "latest",
-    "mocha": "^9.1.0"
+    "kafkajs": "^2.2.4"
   }
 }

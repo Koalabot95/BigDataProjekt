@@ -12,7 +12,7 @@ services:
     volumes:
       - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand('ping')"]
+      test: ["CMD", "mongo", "--quiet", "--eval", "db.runCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -2,6 +2,7 @@ jupyter
 ipykernel
 pandas
 numpy
+confluent-kafka
 pymongo
 shapely
 geopandas

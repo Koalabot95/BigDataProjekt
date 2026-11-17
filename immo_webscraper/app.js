@@ -11,6 +11,7 @@ const path = require('path');
 const { scrapeWillhaben } = require('./test/willhaben_test');
 const { scrapeImmoScout } = require('./test/immoscout24_test');
 const { scrapeStandard } = require('./test/standard_test');
+const { Kafka } = require('kafkajs');
 
 //Konfiguration der Scraper-Läufe
 const CONFIG = {
@@ -18,16 +19,17 @@ const CONFIG = {
     fastPages: 1,                           // schneller Lauf: nur die erste Seite (neueste Inserate)
     fullMaxPages: 150,                      // Obergrenze beim vollen Lauf; Scraper stoppen früher, wenn nichts Neues kommt
     fullWindow: { startHour: 3, endHour: 6 }, // Zeitfenster für den täglichen vollen Lauf (Uhrzeit)
-    fullReserveMin: 120                      // so viel Laufzeit vor Fensterende einplanen in Minuten
+    fullReserveMin: 120     ,                 // so viel Laufzeit vor Fensterende einplanen in Minuten
+    kafka: { enabled: true, broker: 'localhost:9092', topic: 'listings.raw' } // Kafka-Konfiguration
 };
 
 const RAW_DIR = path.join(__dirname, '..', 'data', 'raw');
 const RUNS_DIR = path.join(RAW_DIR, 'runs');
 
 const SOURCES = [
-    { name: 'willhaben',   scrape: scrapeWillhaben, snapshot: 'willhaben_listings.jsonl' },
-    { name: 'immoscout24', scrape: scrapeImmoScout, snapshot: 'immobilienscout_listings.jsonl' },
-    { name: 'derstandard', scrape: scrapeStandard,  snapshot: 'standard_listings.jsonl' }
+    { name: 'willhaben', idField: 'id', scrape: scrapeWillhaben, snapshot: 'willhaben_listings.jsonl' },
+    { name: 'immoscout24', idField: 'exposeId', scrape: scrapeImmoScout, snapshot: 'immobilienscout_listings.jsonl' }
+    //{ name: 'derstandard', idField: 'id', scrape: scrapeStandard,  snapshot: 'standard_listings.jsonl' }
 ];
 
 //Hilfsfunktionen um die aktuelle Zeit in österreichischer Zeitzone zu bekommen
@@ -42,6 +44,26 @@ const stamp = () => {
     }).formatToParts(new Date()).map(x => [x.type, x.value]));
     return `${p.year}-${p.month}-${p.day}T${p.hour}-${p.minute}-${p.second}`;
 };
+
+//Kafka-Producer initialisieren
+const producer = new Kafka({ clientId: 'wohnungs-scraper', brokers: [CONFIG.kafka.broker] }).producer();
+let producerConnected = false;
+
+async function sendToKafka(src, filePath) {
+    if (!producerConnected) {
+        await producer.connect();
+        producerConnected = true;
+    }
+    const messages = fs.readFileSync(filePath, 'utf8').split('\n').filter(Boolean).map(line => ({
+        key: `${src.name}:${JSON.parse(line)[src.idField]}`,
+        value: line
+    }));
+    for (let i = 0; i < messages.length; i += 500) {
+        await producer.send({ topic: CONFIG.kafka.topic, messages: messages.slice(i, i + 500) });
+    }
+    console.log(`${src.name}: ${messages.length} Nachrichten an Kafka (${CONFIG.kafka.topic}) gesendet`);
+}
+
 
 // Einzelner Scraper-Lauf
 async function runJob(runType) {
@@ -64,6 +86,15 @@ async function runJob(runType) {
             } else if (runType === 'full') {
                 console.log(`${src.name}: 0 Inserate – Gesamtstand bleibt unverändert`);
             }
+
+            if (CONFIG.kafka.enabled && count > 0) {
+                try {
+                    await sendToKafka(src, outputPath);
+                } catch (err) {
+                    console.error(`Kafka (${src.name}): ${err.message} – ${path.basename(outputPath)} bleibt erhalten`);
+                }
+            }
+            
         } catch (err) {
             // Ein Fehler bei einer Quelle stoppt die anderen nicht
             console.error(`${src.name}: ${err.message}`);
@@ -108,7 +139,7 @@ function scheduleFull(day = new Date()) {
 }
  
 async function startScheduler() {
-    console.log(`⏱️  Scheduler gestartet: alle ${CONFIG.fastIntervalMin} Min. schneller Lauf, `
+    console.log(`Scheduler gestartet: alle ${CONFIG.fastIntervalMin} Min. schneller Lauf, `
         + `täglich ${CONFIG.fullWindow.startHour}:00-${CONFIG.fullWindow.endHour}:00 voller Lauf`);
  
     // Noch kein Gesamtstand vorhanden -> zuerst Grund-Scrape
