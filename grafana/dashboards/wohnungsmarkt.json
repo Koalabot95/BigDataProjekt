@@ -1,0 +1,2203 @@
+{
+  "uid": "wohnungsmarkt",
+  "title": "Wohnungsmarkt-Radar Wien",
+  "tags": [
+    "wohnungsmarkt",
+    "wien"
+  ],
+  "timezone": "Europe/Vienna",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "1m",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "bezirk",
+        "label": "Bezirk",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": {
+          "rawSql": "SELECT bezirk_label FROM wohnungsmarkt.listings GROUP BY bezirk_label ORDER BY bezirk_label",
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table"
+        },
+        "definition": "SELECT bezirk_label FROM wohnungsmarkt.listings GROUP BY bezirk_label ORDER BY bezirk_label",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [],
+        "sort": 0,
+        "hide": 0
+      },
+      {
+        "name": "source",
+        "label": "Plattform",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": {
+          "rawSql": "SELECT DISTINCT source FROM wohnungsmarkt.listings ORDER BY source",
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table"
+        },
+        "definition": "SELECT DISTINCT source FROM wohnungsmarkt.listings ORDER BY source",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [],
+        "sort": 0,
+        "hide": 0
+      },
+      {
+        "name": "kategorie",
+        "label": "Kategorie",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-clickhouse-datasource",
+          "uid": "clickhouse"
+        },
+        "query": {
+          "rawSql": "SELECT kategorie FROM wohnungsmarkt.listings GROUP BY kategorie ORDER BY min(kategorie_rang)",
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table"
+        },
+        "definition": "SELECT kategorie FROM wohnungsmarkt.listings GROUP BY kategorie ORDER BY min(kategorie_rang)",
+        "refresh": 2,
+        "multi": true,
+        "includeAll": true,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "options": [],
+        "sort": 0,
+        "hide": 0
+      },
+      {
+        "name": "preis_max",
+        "label": "Max. Miete (€)",
+        "type": "textbox",
+        "query": "100000",
+        "current": {
+          "selected": false,
+          "text": "100000",
+          "value": "100000"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "100000",
+            "value": "100000"
+          }
+        ],
+        "hide": 0
+      },
+      {
+        "name": "flaeche_min",
+        "label": "Min. Fläche (m²)",
+        "type": "textbox",
+        "query": "0",
+        "current": {
+          "selected": false,
+          "text": "0",
+          "value": "0"
+        },
+        "options": [
+          {
+            "selected": true,
+            "text": "0",
+            "value": "0"
+          }
+        ],
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Aktive Inserate",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT count() AS aktive FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Neu in den letzten 24 h",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT count() AS neu FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min} AND first_seen >= now() - INTERVAL 1 DAY",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "center"
+      },
+      "description": "Inserate, die zum ersten Mal in den letzten 24 Stunden gesehen wurden (first_seen)."
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Anteil guter Deals",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT round(100 * countIf(kategorie IN ('Sehr guter Deal','Guter Deal')) / count(), 1) AS anteil FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "center"
+      },
+      "description": "Sehr guter Deal + Guter Deal, bezogen auf die gefilterten Inserate."
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Median Miete pro m²",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT round(median(price_per_m2), 2) AS median_ppm2 FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "unit": "suffix: € / m²",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Modell-Fehler (MAPE)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT mape FROM wohnungsmarkt.model_metrics WHERE testart = 'Zufalls-Split' AND trained_at = (SELECT max(trained_at) FROM wohnungsmarkt.model_metrics) ORDER BY mae ASC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 15
+              },
+              {
+                "color": "red",
+                "value": 25
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "center"
+      },
+      "description": "Durchschnittlicher prozentualer Fehler des besten Modells (Testset, letztes Training)."
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Letzter Datenstand",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT max(last_seen) AS stand FROM wohnungsmarkt.listings",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "text"
+          },
+          "unit": "dateTimeAsLocal"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "justifyMode": "center"
+      },
+      "description": "Zeitpunkt des letzten Scraper-Laufs, in dem ein Inserat gesehen wurde."
+    },
+    {
+      "id": 7,
+      "type": "geomap",
+      "title": "Inserate in Wien (Farbe = Abweichung von der fairen Miete)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 14,
+        "h": 11
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT lat, lon, title, price, faire_miete, abweichung, kategorie, bezirk_label FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#1a9850",
+                "value": null
+              },
+              {
+                "color": "#91cf60",
+                "value": -25
+              },
+              {
+                "color": "#bdbdbd",
+                "value": -10
+              },
+              {
+                "color": "#fc8d59",
+                "value": 10
+              },
+              {
+                "color": "#d73027",
+                "value": 25
+              }
+            ]
+          },
+          "unit": "none",
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "abweichung"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "price"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "faire_miete"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "view": {
+          "id": "coords",
+          "lat": 48.2082,
+          "lon": 16.3738,
+          "zoom": 11,
+          "allLayers": true
+        },
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true
+        },
+        "basemap": {
+          "type": "default",
+          "name": "Layer 0"
+        },
+        "tooltip": {
+          "mode": "details"
+        },
+        "layers": [
+          {
+            "type": "markers",
+            "name": "Inserate",
+            "tooltip": true,
+            "location": {
+              "mode": "coords",
+              "latitude": "lat",
+              "longitude": "lon"
+            },
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "abweichung",
+                  "fixed": "dark-green"
+                },
+                "opacity": 0.75,
+                "size": {
+                  "fixed": 6,
+                  "min": 2,
+                  "max": 15
+                },
+                "symbol": {
+                  "mode": "fixed",
+                  "fixed": "img/icons/marker/circle.svg"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "description": "Grün = günstiger als die faire Miete laut Modell, rot = teurer. Schwellen wie in der Deal-Bewertung (±10 %, ±25 %)."
+    },
+    {
+      "id": 8,
+      "type": "piechart",
+      "title": "Verteilung der Bewertungen",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 4,
+        "w": 10,
+        "h": 11
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT countIf(kategorie = 'Sehr guter Deal') AS `Sehr guter Deal`, countIf(kategorie = 'Guter Deal') AS `Guter Deal`, countIf(kategorie = 'Fair') AS `Fair`, countIf(kategorie = 'Teuer') AS `Teuer`, countIf(kategorie = 'Zu teuer') AS `Zu teuer` FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sehr guter Deal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#1a9850"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Guter Deal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#91cf60"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fair"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#bdbdbd"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Teuer"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#fc8d59"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zu teuer"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d73027"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "tooltip": {
+          "mode": "single"
+        },
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": [
+            "value",
+            "percent"
+          ],
+          "showLegend": true
+        },
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "barchart",
+      "title": "Median Miete pro m² je Bezirk",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT bezirk_label AS Bezirk, round(median(price_per_m2), 2) AS `Median €/m²` FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min} GROUP BY bezirk_label ORDER BY bezirk_label",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "Bezirk",
+        "orientation": "vertical",
+        "xTickLabelRotation": -45,
+        "showValue": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        },
+        "barWidth": 0.8,
+        "groupWidth": 0.7,
+        "stacking": "none"
+      }
+    },
+    {
+      "id": 10,
+      "type": "barchart",
+      "title": "Bewertungen je Bezirk (Anteil in %)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT bezirk_label AS Bezirk, countIf(kategorie = 'Sehr guter Deal') AS `Sehr guter Deal`, countIf(kategorie = 'Guter Deal') AS `Guter Deal`, countIf(kategorie = 'Fair') AS `Fair`, countIf(kategorie = 'Teuer') AS `Teuer`, countIf(kategorie = 'Zu teuer') AS `Zu teuer` FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min} GROUP BY bezirk_label ORDER BY bezirk_label",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Sehr guter Deal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#1a9850"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Guter Deal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#91cf60"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Fair"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#bdbdbd"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Teuer"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#fc8d59"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Zu teuer"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d73027"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "xField": "Bezirk",
+        "orientation": "vertical",
+        "xTickLabelRotation": -45,
+        "stacking": "percent",
+        "showValue": "never",
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "barWidth": 0.9,
+        "groupWidth": 0.8
+      },
+      "description": "Anteil der Kategorien pro Bezirk (Frage 5). Viel Grün = viele gute Deals."
+    },
+    {
+      "id": 11,
+      "type": "histogram",
+      "title": "Histogramm der Abweichungen (%)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 24,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT abweichung FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min} AND abweichung BETWEEN -60 AND 100",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "bucketCount": 40,
+        "combine": true,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        }
+      },
+      "description": "Negativ = günstiger als geschätzt. Dargestellt sind Werte zwischen -60 % und +100 %."
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Neue Inserate pro Tag",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 24,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 0,
+          "queryType": "timeseries",
+          "rawSql": "SELECT toStartOfDay(first_seen) AS time, countIf(source = 'willhaben') AS Willhaben, countIf(source = 'immoscout24') AS ImmoScout24 FROM wohnungsmarkt.listings WHERE $__timeFilter(first_seen) GROUP BY time ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "bars",
+            "fillOpacity": 70,
+            "lineWidth": 1,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "description": "Anzahl der Inserate nach Datum des ersten Auftauchens. Der erste Tag enthält den Grunddatensatz."
+    },
+    {
+      "id": 13,
+      "type": "xychart",
+      "title": "Tatsächliche vs. geschätzte Miete",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 24,
+        "w": 8,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT price AS `Tatsächliche Miete`, faire_miete AS `Geschätzte Miete` FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyEUR",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "custom": {
+            "pointSize": {
+              "fixed": 4
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "seriesMapping": "auto",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "description": "Je näher die Punkte an der Diagonalen liegen, desto besser die Schätzung. Die Schätzungen stammen aus der 5-fachen Cross-Validation."
+    },
+    {
+      "id": 14,
+      "type": "table",
+      "title": "Feed: neu hereinkommende Inserate",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 11
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT first_seen AS Seit, source AS Plattform, bezirk_label AS Bezirk, title AS Inserat, area_m2 AS `m²`, rooms AS Zimmer, price AS Miete, faire_miete AS `Geschätzt`, ersparnis AS `Ersparnis €`, abweichung AS Abweichung, kategorie AS Bewertung, url FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min} ORDER BY first_seen DESC, abweichung ASC LIMIT 100",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Inserat"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inserat öffnen",
+                    "url": "${__data.fields.url}",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 380
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "url"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Seit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Miete"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Geschätzt"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ersparnis €"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "m²"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Abweichung"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#1a9850",
+                      "value": null
+                    },
+                    {
+                      "color": "#91cf60",
+                      "value": -25
+                    },
+                    {
+                      "color": "#bdbdbd",
+                      "value": -10
+                    },
+                    {
+                      "color": "#fc8d59",
+                      "value": 10
+                    },
+                    {
+                      "color": "#d73027",
+                      "value": 25
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Bewertung"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Sehr guter Deal": {
+                        "color": "#1a9850",
+                        "index": 0,
+                        "text": "Sehr guter Deal"
+                      },
+                      "Guter Deal": {
+                        "color": "#91cf60",
+                        "index": 1,
+                        "text": "Guter Deal"
+                      },
+                      "Fair": {
+                        "color": "#bdbdbd",
+                        "index": 2,
+                        "text": "Fair"
+                      },
+                      "Teuer": {
+                        "color": "#fc8d59",
+                        "index": 3,
+                        "text": "Teuer"
+                      },
+                      "Zu teuer": {
+                        "color": "#d73027",
+                        "index": 4,
+                        "text": "Zu teuer"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "description": "Die 100 zuletzt gesehenen Inserate. Ein Klick auf den Titel öffnet das Inserat. Spalten sind sortier- und filterbar."
+    },
+    {
+      "id": 15,
+      "type": "table",
+      "title": "Top-Deals nach Ersparnis in €",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 12,
+        "h": 10
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT bezirk_label AS Bezirk, title AS Inserat, area_m2 AS `m²`, price AS Miete, faire_miete AS `Geschätzt`, ersparnis AS `Ersparnis €`, abweichung AS Abweichung, kategorie AS Bewertung, url FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min} ORDER BY ersparnis DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Inserat"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inserat öffnen",
+                    "url": "${__data.fields.url}",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 380
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "url"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Seit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Miete"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Geschätzt"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ersparnis €"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "m²"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Abweichung"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#1a9850",
+                      "value": null
+                    },
+                    {
+                      "color": "#91cf60",
+                      "value": -25
+                    },
+                    {
+                      "color": "#bdbdbd",
+                      "value": -10
+                    },
+                    {
+                      "color": "#fc8d59",
+                      "value": 10
+                    },
+                    {
+                      "color": "#d73027",
+                      "value": 25
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Bewertung"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Sehr guter Deal": {
+                        "color": "#1a9850",
+                        "index": 0,
+                        "text": "Sehr guter Deal"
+                      },
+                      "Guter Deal": {
+                        "color": "#91cf60",
+                        "index": 1,
+                        "text": "Guter Deal"
+                      },
+                      "Fair": {
+                        "color": "#bdbdbd",
+                        "index": 2,
+                        "text": "Fair"
+                      },
+                      "Teuer": {
+                        "color": "#fc8d59",
+                        "index": 3,
+                        "text": "Teuer"
+                      },
+                      "Zu teuer": {
+                        "color": "#d73027",
+                        "index": 4,
+                        "text": "Zu teuer"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "description": "Bevorzugt große Wohnungen, weil 20 % von 4.000 € mehr sind als 20 % von 1.000 €."
+    },
+    {
+      "id": 16,
+      "type": "table",
+      "title": "Top-Deals nach Abweichung in %",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 44,
+        "w": 12,
+        "h": 10
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT bezirk_label AS Bezirk, title AS Inserat, area_m2 AS `m²`, price AS Miete, faire_miete AS `Geschätzt`, ersparnis AS `Ersparnis €`, abweichung AS Abweichung, kategorie AS Bewertung, url FROM wohnungsmarkt.listings WHERE status = 'active' AND bezirk_label IN (${bezirk:singlequote}) AND source IN (${source:singlequote}) AND kategorie IN (${kategorie:singlequote}) AND price <= ${preis_max} AND area_m2 >= ${flaeche_min} ORDER BY abweichung ASC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Inserat"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inserat öffnen",
+                    "url": "${__data.fields.url}",
+                    "targetBlank": true
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 380
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "url"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Seit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              },
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Miete"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Geschätzt"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Ersparnis €"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyEUR"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "m²"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Abweichung"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "#1a9850",
+                      "value": null
+                    },
+                    {
+                      "color": "#91cf60",
+                      "value": -25
+                    },
+                    {
+                      "color": "#bdbdbd",
+                      "value": -10
+                    },
+                    {
+                      "color": "#fc8d59",
+                      "value": 10
+                    },
+                    {
+                      "color": "#d73027",
+                      "value": 25
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Bewertung"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "Sehr guter Deal": {
+                        "color": "#1a9850",
+                        "index": 0,
+                        "text": "Sehr guter Deal"
+                      },
+                      "Guter Deal": {
+                        "color": "#91cf60",
+                        "index": 1,
+                        "text": "Guter Deal"
+                      },
+                      "Fair": {
+                        "color": "#bdbdbd",
+                        "index": 2,
+                        "text": "Fair"
+                      },
+                      "Teuer": {
+                        "color": "#fc8d59",
+                        "index": 3,
+                        "text": "Teuer"
+                      },
+                      "Zu teuer": {
+                        "color": "#d73027",
+                        "index": 4,
+                        "text": "Zu teuer"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "description": "Relative Schnäppchen, unabhängig von der Wohnungsgröße."
+    },
+    {
+      "id": 17,
+      "type": "row",
+      "title": "Modell & Einflussfaktoren",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 54,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 18,
+      "type": "table",
+      "title": "Modellvergleich (Frage 2 und 6)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 55,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT trained_at AS Training, modell AS Modell, testart AS Test, mae AS `MAE €`, mape AS `MAPE %`, rmse AS `RMSE €`, r2 AS `R²` FROM wohnungsmarkt.model_metrics ORDER BY trained_at DESC, testart ASC, mae ASC LIMIT 30",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MAE €"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MAPE %"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RMSE €"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "R²"
+            },
+            "properties": [
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Training"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsLocal"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "description": "Jede Trainingsrunde wird angehängt. Die Zeile 'Zeit-Split' zeigt den Fehler auf den neuesten 20 % der Inserate."
+    },
+    {
+      "id": 19,
+      "type": "table",
+      "title": "Prozent-Effekte: Merkmale (Frage 3)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 55,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT merkmal AS Merkmal, round(effekt_pct, 1) AS `Effekt auf die Miete` FROM wohnungsmarkt.effects WHERE gruppe = 'Merkmal' ORDER BY effekt_pct DESC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Effekt auf die Miete"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "description": "Aus den Koeffizienten des log-linearen Modells: (e^b − 1) · 100 %, bei sonst gleichen Merkmalen."
+    },
+    {
+      "id": 20,
+      "type": "barchart",
+      "title": "Permutation Importance (Verlust an R²)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 63,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT merkmal AS Merkmal, round(wichtigkeit, 4) AS `Verlust an R²` FROM wohnungsmarkt.feature_importance ORDER BY wichtigkeit DESC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "purple"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "Merkmal",
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "barchart",
+      "title": "Bezirks-Effekt auf die Miete (ggü. Vergleichsbezirk)",
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "clickhouse"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 63,
+        "w": 12,
+        "h": 9
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-clickhouse-datasource",
+            "uid": "clickhouse"
+          },
+          "editorType": "sql",
+          "format": 1,
+          "queryType": "table",
+          "rawSql": "SELECT merkmal AS Bezirk, round(effekt_pct, 1) AS `Effekt in %` FROM wohnungsmarkt.effects WHERE gruppe = 'Bezirk' ORDER BY effekt_pct DESC",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "continuous-GrYlRd"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "Bezirk",
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "description": "Vergleichsbezirk ist der Bezirk mit den meisten Inseraten (Referenz = 0 %)."
+    }
+  ]
+}

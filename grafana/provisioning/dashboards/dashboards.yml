@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: Wohnungsmarkt
+    orgId: 1
+    folder: ""
+    type: file
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards
